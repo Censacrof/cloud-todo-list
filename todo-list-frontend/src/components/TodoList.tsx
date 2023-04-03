@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FC, useCallback, useState } from "react";
+import { DragEvent, FC, useCallback, useState } from "react";
 
 export const TodoList: FC = function TodoList() {
   const [tasksTodo, setTasksTodo] = useState<TaskType[]>([
@@ -11,24 +11,46 @@ export const TodoList: FC = function TodoList() {
 
   const [tasksDone, setTasksDone] = useState<TaskType[]>([]);
 
-  const handleCreateTodoTask = useCallback(() => {
-    setTasksTodo([
-      ...tasksTodo,
-      createTask({
-        name: "A new task",
-        description: "New 'n tasty",
-      }),
-    ]);
-  }, []);
+  const handleAddTodoTask = useCallback(
+    (task: TaskType) => {
+      setTasksTodo([...tasksTodo, task]);
+    },
+    [tasksTodo]
+  );
+  const handleRemoveTodoTask = useCallback(
+    (task: TaskType) => {
+      setTasksTodo(tasksTodo.filter((t) => t.id !== task.id));
+    },
+    [tasksTodo]
+  );
+
+  const handleAddDoneTask = useCallback(
+    (task: TaskType) => {
+      setTasksDone([...tasksDone, task]);
+    },
+    [tasksDone]
+  );
+  const handleRemoveDoneTask = useCallback(
+    (task: TaskType) => {
+      setTasksDone(tasksDone.filter((t) => t.id !== task.id));
+    },
+    [tasksDone]
+  );
 
   return (
     <div className="flex flex-row justify-between gap-5">
       <TodoListColumn
         columnName={"TODO"}
         tasks={tasksTodo}
-        onCreate={handleCreateTodoTask}
+        onAdd={handleAddTodoTask}
+        onRemove={handleRemoveTodoTask}
       />
-      <TodoListColumn columnName={"Done"} tasks={tasksDone} />
+      <TodoListColumn
+        columnName={"Done"}
+        tasks={tasksDone}
+        onAdd={handleAddDoneTask}
+        onRemove={handleRemoveDoneTask}
+      />
     </div>
   );
 };
@@ -36,26 +58,63 @@ export const TodoList: FC = function TodoList() {
 interface TodoListColumnProps {
   columnName: string;
   tasks: TaskType[];
-  onCreate?: () => void;
+  onAdd: (task: TaskType) => void;
+  onRemove: (task: TaskType) => void;
 }
 const TodoListColumn: FC<TodoListColumnProps> = function TodoListColumn({
   columnName,
   tasks,
-  onCreate,
+  onAdd,
+  onRemove,
 }) {
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      const task: TaskType | undefined = JSON.parse(
+        event.dataTransfer.getData("task")
+      );
+
+      task && onAdd(task);
+    },
+    [onAdd]
+  );
+
+  const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  }, []);
+
+  const handleNewTask = useCallback(() => {
+    onAdd(
+      createTask({
+        name: "A new task",
+        description: "New 'n tasty",
+      })
+    );
+  }, [onAdd]);
+
   return (
-    <div className="w-80 flex flex-col items-center min-h-[30rem] bg-slate-300">
+    <div
+      className="w-80 flex flex-col items-center min-h-[30rem] bg-slate-300"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
       <div className="w-full flex flex-row justify-center items-center gap-4">
         <p className="p-2">{columnName}</p>
-        {onCreate && (
-          <button className="p-1 rounded bg-slate-50" onClick={onCreate}>
-            add
+        {
+          <button className="p-1 rounded bg-slate-50" onClick={handleNewTask}>
+            new
           </button>
-        )}
+        }
       </div>
       <div className="w-full flex flex-col gap-4 px-2">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            columnName={columnName}
+            onRemove={onRemove}
+          />
         ))}
       </div>
     </div>
@@ -80,22 +139,30 @@ const createTask = ({ description, name }: Omit<TaskType, "id">): TaskType => {
 };
 
 interface TaskCardProps {
+  columnName: string;
   task: TaskType;
+  onRemove: (task: TaskType) => void;
 }
-const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
-  const { name, description } = task;
-
+const TaskCard: FC<TaskCardProps> = function TaskCard({
+  columnName,
+  task,
+  onRemove,
+}) {
   const [isBeingDragged, setIsBeingDragged] = useState(false);
 
-  const handleDragStart = useCallback(() => {
-    console.log("start");
-    setIsBeingDragged(true);
-  }, []);
+  const handleDragStart = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.dataTransfer.setData("sourceColumnName", columnName);
+      event.dataTransfer.setData("task", JSON.stringify(task));
+      setIsBeingDragged(true);
+    },
+    [columnName, task]
+  );
 
   const handleDragEnd = useCallback(() => {
-    console.log("end");
     setIsBeingDragged(false);
-  }, []);
+    onRemove(task);
+  }, [onRemove, task]);
 
   return (
     <div
@@ -109,8 +176,8 @@ const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
         }
       )}
     >
-      <h3>{name}</h3>
-      <p>{description}</p>
+      <h3>{task.name}</h3>
+      <p>{task.description}</p>
     </div>
   );
 };
