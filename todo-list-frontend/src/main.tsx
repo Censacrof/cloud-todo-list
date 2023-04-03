@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { worker } from "./mocks/browser";
 
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === "development:msw") {
+  const { worker } = await import("./mocks/browser");
   await worker.start();
 }
 
