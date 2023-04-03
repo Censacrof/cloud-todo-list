@@ -1,7 +1,10 @@
 import classNames from "classnames";
 import { DragEvent, FC, useCallback, useState } from "react";
+import { useGetTestStringQuery } from "../api/api";
 
 export const TodoList: FC = function TodoList() {
+  const { data, isFetching } = useGetTestStringQuery();
+
   const [tasksTodo, setTasksTodo] = useState<TaskType[]>([
     createTask({
       name: "Do stuff",
@@ -38,20 +41,23 @@ export const TodoList: FC = function TodoList() {
   );
 
   return (
-    <div className="flex flex-row justify-between gap-5">
-      <TodoListColumn
-        columnName={"TODO"}
-        tasks={tasksTodo}
-        onAdd={handleAddTodoTask}
-        onRemove={handleRemoveTodoTask}
-      />
-      <TodoListColumn
-        columnName={"Done"}
-        tasks={tasksDone}
-        onAdd={handleAddDoneTask}
-        onRemove={handleRemoveDoneTask}
-      />
-    </div>
+    <>
+      <p>{isFetching ? "feching..." : data}</p>
+      <div className="flex flex-row justify-between gap-5">
+        <TodoListColumn
+          columnName={"TODO"}
+          tasks={tasksTodo}
+          onAdd={handleAddTodoTask}
+          onRemove={handleRemoveTodoTask}
+        />
+        <TodoListColumn
+          columnName={"Done"}
+          tasks={tasksDone}
+          onAdd={handleAddDoneTask}
+          onRemove={handleRemoveDoneTask}
+        />
+      </div>
+    </>
   );
 };
 
