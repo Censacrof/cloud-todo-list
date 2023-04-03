@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
 const plugin = require("tailwindcss/plugin");
 
 /** @type {import('tailwindcss').Config} */

@@ -1,4 +1,5 @@
-import { FC, useState } from "react";
+import classNames from "classnames";
+import { FC, useCallback, useState } from "react";
 
 export const TodoList: FC = function TodoList() {
   const [tasksTodo, setTasksTodo] = useState<TaskType[]>([
@@ -61,8 +62,31 @@ interface TaskCardProps {
 const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
   const { name, description } = task;
 
+  const [isBeingDragged, setIsBeingDragged] = useState(false);
+
+  const handleDragStart = useCallback(() => {
+    console.log("start");
+    setIsBeingDragged(true);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    console.log("end");
+    setIsBeingDragged(false);
+  }, []);
+
   return (
-    <div className="w-full flex flex-col rounded-3xl p-4 bg-slate-50">
+    <div
+      draggable={true}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className={classNames(
+        "w-full flex flex-col rounded-3xl p-4 bg-slate-50",
+        {
+          "opacity-0": isBeingDragged,
+        }
+      )}
+      // className="w-full flex flex-col rounded-3xl p-4 bg-slate-50"
+    >
       <h3>{name}</h3>
       <p>{description}</p>
     </div>
