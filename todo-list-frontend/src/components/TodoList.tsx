@@ -31,7 +31,7 @@ const TodoListColumn: FC<TodoListColumnProps> = function TodoListColumn({
       <p className="p-2">{columnName}</p>
       <div className="w-full flex flex-col gap-4 px-2">
         {tasks.map((task) => (
-          <TaskCard task={task} />
+          <TaskCard key={task.id} task={task} />
         ))}
       </div>
     </div>
