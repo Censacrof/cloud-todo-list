@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { FC } from "react";
+import { TodoList } from "./pages/TodoList";
 
-function App() {
-  const [count, setCount] = useState(0);
-
-  return <h1 className="text-3xl font-bold underline">Hello world!</h1>;
-}
+const App: FC = function App() {
+  return <TodoList />;
+};
 
 export default App;
