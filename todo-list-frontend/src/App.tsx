@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { TodoList } from "./pages/TodoList";
+import { TodoListPage } from "./pages/TodoListPage";
 
 const App: FC = function App() {
-  return <TodoList />;
+  return <TodoListPage />;
 };
 
 export default App;
