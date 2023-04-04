@@ -3,7 +3,7 @@ import * as rt from "runtypes";
 export const Task = rt.Record({
   id: rt.String,
   name: rt.String,
-  description: rt.Number.optional(),
+  description: rt.String.optional(),
 });
 export type TaskType = rt.Static<typeof Task>;
 
