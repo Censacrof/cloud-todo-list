@@ -1,6 +1,10 @@
 import { RestHandler, rest } from "msw";
-import { BASE_URL, getGetBoardEndpoint } from "../api/api";
-import { BoardType, TaskCollectionType } from "../datamodel/todoList";
+import {
+  BASE_URL,
+  getGetBoardEndpoint,
+  getGetTaskCollectionEndpoint,
+} from "../api/api";
+import { BoardType, TaskCollectionType, TaskType } from "../datamodel/todoList";
 
 const _boards = new Map<string, BoardType>();
 _boards.set("my-board", {
@@ -43,4 +47,32 @@ const handleGetBoard = rest.get(
   }
 );
 
-export const handlers: RestHandler[] = [handleGetBoard];
+const handleGetTaskCollection = rest.get(
+  BASE_URL + getGetTaskCollectionEndpoint(":boardId", ":taskCollectionId"),
+  (req, res, ctx) => {
+    const { boardId, taskCollectionId } = req.params;
+
+    const board = _boards.get(boardId as string);
+    if (!board) {
+      return res(ctx.status(404));
+    }
+
+    const taskCollection = (board.collections as TaskCollectionType[]).find(
+      (c) => c.id === taskCollectionId
+    );
+    if (!taskCollection) {
+      return res(ctx.status(404));
+    }
+
+    taskCollection.tasks = (taskCollection.tasks as TaskType[]).map(
+      (t) => t.id
+    );
+
+    return res(ctx.status(200), ctx.json(taskCollection));
+  }
+);
+
+export const handlers: RestHandler[] = [
+  handleGetBoard,
+  handleGetTaskCollection,
+];
