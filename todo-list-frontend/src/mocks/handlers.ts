@@ -3,6 +3,7 @@ import {
   BASE_URL,
   getGetBoardEndpoint,
   getGetTaskCollectionEndpoint,
+  getGetTaskEndpoint,
 } from "../api/api";
 import { BoardType, TaskCollectionType, TaskType } from "../datamodel/todoList";
 
@@ -34,13 +35,13 @@ const handleGetBoard = rest.get(
   (req, res, ctx) => {
     const { boardId } = req.params;
 
-    const board = _boards.get(boardId as string);
+    const board = JSON.parse(JSON.stringify(_boards.get(boardId as string)));
     if (!board) {
       return res(ctx.status(404));
     }
 
     board.collections = (board.collections as TaskCollectionType[]).map(
-      (c) => c
+      (c) => c.id
     );
 
     return res(ctx.status(200), ctx.json(board));
@@ -52,7 +53,7 @@ const handleGetTaskCollection = rest.get(
   (req, res, ctx) => {
     const { boardId, taskCollectionId } = req.params;
 
-    const board = _boards.get(boardId as string);
+    const board = JSON.parse(JSON.stringify(_boards.get(boardId as string)));
     if (!board) {
       return res(ctx.status(404));
     }
@@ -72,7 +73,33 @@ const handleGetTaskCollection = rest.get(
   }
 );
 
+const handleGetTask = rest.get(
+  BASE_URL + getGetTaskEndpoint(":boardId", ":taskId"),
+  (req, res, ctx) => {
+    const { boardId, taskId } = req.params;
+
+    const board = JSON.parse(JSON.stringify(_boards.get(boardId as string)));
+    if (!board) {
+      return res(ctx.status(404));
+    }
+
+    const allTasks = (board.collections as TaskCollectionType[])
+      .map((c) => c.tasks as TaskType[])
+      .flat();
+    console.log(board.collections);
+    console.log(_boards);
+
+    const task = allTasks.find((t) => t.id === taskId);
+    if (!task) {
+      return res(ctx.status(404));
+    }
+
+    return res(ctx.status(200), ctx.json(task));
+  }
+);
+
 export const handlers: RestHandler[] = [
   handleGetBoard,
   handleGetTaskCollection,
+  handleGetTask,
 ];
