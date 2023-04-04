@@ -7,15 +7,15 @@ export const Task = rt.Record({
 });
 export type TaskType = rt.Static<typeof Task>;
 
-export const TasksCollection = rt.Record({
+export const TaskCollection = rt.Record({
   id: rt.String,
   name: rt.String,
-  tasks: rt.Array(Task),
+  tasks: rt.Union(rt.Array(Task), rt.Array(rt.String)),
 });
-export type TasksCollectionType = rt.Static<typeof TasksCollection>;
+export type TaskCollectionType = rt.Static<typeof TaskCollection>;
 
 export const Board = rt.Record({
   id: rt.String,
-  collections: rt.Array(TasksCollection),
+  collections: rt.Union(rt.Array(TaskCollection), rt.Array(rt.String)),
 });
 export type BoardType = rt.Static<typeof Board>;
