@@ -10,13 +10,15 @@ export const BoardComponent: FC = function BoardComponent() {
     isError,
   } = api.useGetBoardQuery({ boardId });
 
+  const { data: collectionsData } = api.useFindTaskCollectionQuery({ boardId });
+
   return (
     <>
       {isFetching && <p>fetching BoardComponent...</p>}
       {isError && <p>error fetching BoardComponent</p>}
       {boardData && (
         <div className="flex flex-row justify-between gap-5">
-          {boardData.collections.map((collection) => {
+          {collectionsData?.map((collection) => {
             const collectionId =
               typeof collection === "string" ? collection : collection.id;
             return (
@@ -44,6 +46,8 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
       taskCollectionId,
     });
 
+    const [createTask] = api.useCreateTaskMutation();
+
     return (
       <div className="w-80 flex flex-col items-center min-h-[30rem] bg-slate-300">
         {taskCollectionData && (
@@ -54,7 +58,15 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
                 <button
                   className="p-1 rounded bg-slate-50"
                   onClick={() => {
-                    //
+                    createTask({
+                      boardId,
+                      task: {
+                        boardId,
+                        taskCollectionId,
+                        name: "A new task",
+                        description: "New 'n tasty",
+                      },
+                    });
                   }}
                 >
                   new
@@ -62,12 +74,13 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
               }
             </div>
             <div className="w-full flex flex-col gap-4 px-2">
-              {taskCollectionData.tasks.map((task) => {
+              daje
+              {/* {taskCollectionData.tasks.map((task) => {
                 const taskId = typeof task === "string" ? task : task.id;
                 return (
                   <TaskCard key={taskId} boardId={boardId} taskId={taskId} />
                 );
-              })}
+              })} */}
             </div>
           </>
         )}

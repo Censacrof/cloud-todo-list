@@ -6,10 +6,10 @@ export const BASE_URL = "https://test.com/api/v1/";
 export const getBoardEndpoint = (boardId: string) => `board/${boardId}`;
 export const getTaskCollectionEndpoint = (
   boardId: string,
-  taskCollectionId: string
-) => `${getBoardEndpoint(boardId)}/taskCollection/${taskCollectionId}`;
+  taskCollectionId?: string
+) => `${getBoardEndpoint(boardId)}/taskCollection/${taskCollectionId || ""}`;
 export const getTaskEndpoint = (boardId: string, taskId?: string) =>
-  `${getBoardEndpoint(boardId)}/task/${taskId}`;
+  `${getBoardEndpoint(boardId)}/task/${taskId || ""}`;
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -31,6 +31,17 @@ export const api = createApi({
     >({
       query: ({ boardId, taskCollectionId }) => ({
         url: getTaskCollectionEndpoint(boardId, taskCollectionId),
+        method: "GET",
+      }),
+      providesTags: ["collection"],
+    }),
+
+    findTaskCollection: builder.query<
+      TaskCollectionType[],
+      { boardId: string }
+    >({
+      query: ({ boardId }) => ({
+        url: getTaskCollectionEndpoint(boardId),
         method: "GET",
       }),
       providesTags: ["collection"],
