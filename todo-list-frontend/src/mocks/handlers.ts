@@ -113,13 +113,9 @@ const handleGetTask = rest.get(
 const handleFindTask = rest.get(
   BASE_URL + getTaskEndpoint(":boardId"),
   (req, res, ctx) => {
-    const { boardId, taskId } = req.params;
+    const { boardId } = req.params;
 
     let tasks = _tasks.filter(({ boardId: bId }) => bId === boardId);
-
-    if (taskId) {
-      tasks = tasks.filter(({ id }) => id === taskId);
-    }
 
     req.url.searchParams.forEach((val, key) => {
       if (!(key in Task.fields)) {
@@ -155,6 +151,30 @@ const handleCreateTask = rest.post(
   }
 );
 
+const handleUpdateTask = rest.put(
+  BASE_URL + getTaskEndpoint(":boardId", ":taskId"),
+  async (req, res, ctx) => {
+    const { taskId } = req.params;
+
+    const updatedTask = await req.json();
+
+    if (!Task.guard(updatedTask)) {
+      return res(ctx.status(400));
+    }
+
+    const task = _tasks.find((t) => t.id === taskId);
+    if (!task) {
+      return res(ctx.status(404));
+    }
+
+    Object.entries(updatedTask).forEach(([key, val]) => {
+      task[key as keyof TaskType] = val;
+    });
+
+    return res(ctx.status(200), ctx.json(task));
+  }
+);
+
 export const handlers: RestHandler[] = [
   handleGetBoard,
   handleGetTaskCollection,
@@ -162,4 +182,5 @@ export const handlers: RestHandler[] = [
   handleGetTask,
   handleFindTask,
   handleCreateTask,
+  handleUpdateTask,
 ];

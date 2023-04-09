@@ -87,5 +87,17 @@ export const api = createApi({
       }),
       invalidatesTags: ["findTask"],
     }),
+
+    updateTask: builder.mutation<
+      TaskType,
+      { boardId: string; taskId: string; task: TaskType }
+    >({
+      query: ({ boardId, taskId, task }) => ({
+        url: getTaskEndpoint(boardId, taskId),
+        body: task,
+        method: "PUT",
+      }),
+      invalidatesTags: ["getTask", "findTask"],
+    }),
   }),
 });

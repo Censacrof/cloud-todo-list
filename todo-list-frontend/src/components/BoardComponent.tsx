@@ -1,5 +1,6 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { api } from "../api/api";
+import { Task } from "../datamodel/todoList";
 
 export const BoardComponent: FC = function BoardComponent() {
   const boardId = "my-board";
@@ -54,9 +55,37 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
     });
 
     const [createTask] = api.useCreateTaskMutation();
+    const [updateTask] = api.useUpdateTaskMutation();
+
+    const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+    }, []);
+
+    const onDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        const task = JSON.parse(event.dataTransfer.getData("task"));
+        if (!Task.guard(task)) {
+          return;
+        }
+
+        updateTask({
+          boardId: task.boardId,
+          taskId: task.id,
+          task: {
+            ...task,
+            taskCollectionId,
+          },
+        });
+      },
+      [taskCollectionId, updateTask]
+    );
 
     return (
-      <div className="w-80 flex flex-col items-center min-h-[30rem] bg-slate-300">
+      <div
+        className="w-80 flex flex-col items-center min-h-[30rem] bg-slate-300"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
         {taskCollectionData && (
           <>
             <div className="w-full flex flex-row justify-center items-center gap-4">
@@ -104,10 +133,18 @@ const TaskCard: FC<TaskCardProps> = function TaskCard({ boardId, taskId }) {
     taskId,
   });
 
+  const onDragStart = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.dataTransfer.setData("task", JSON.stringify(taskData));
+    },
+    [taskData]
+  );
+
   return (
     <div
       draggable={true}
       className={"w-full flex flex-col rounded-3xl p-4 bg-slate-50"}
+      onDragStart={onDragStart}
     >
       {taskData && (
         <>
