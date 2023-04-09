@@ -48,6 +48,7 @@ const _tasks: TaskType[] = [
     description: "Wow a task",
   },
 ];
+let _tasksNextId = 2;
 
 // const deepClone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
@@ -132,30 +133,27 @@ const handleFindTask = rest.get(
   }
 );
 
-// const handlePostTask = rest.post(
-//   BASE_URL + getTaskEndpoint(":boardId"),
-//   (req, res, ctx) => {
-//     const { boardId, taskId } = req.params;
+const handleCreateTask = rest.post(
+  BASE_URL + getTaskEndpoint(":boardId"),
+  async (req, res, ctx) => {
+    const { boardId } = req.params;
 
-//     const board = JSON.parse(JSON.stringify(_boards.get(boardId as string)));
-//     if (!board) {
-//       return res(ctx.status(404));
-//     }
+    try {
+      const newTask = Task.check({
+        id: `T-${_tasksNextId}`,
+        boardId,
+        ...(await req.json()),
+      });
 
-//     const allTasks = (board.collections as TaskCollectionType[])
-//       .map((c) => c.tasks as TaskType[])
-//       .flat();
-//     console.log(board.collections);
-//     console.log(_boards);
+      _tasksNextId += 1;
+      _tasks.push(newTask);
 
-//     const task = allTasks.find((t) => t.id === taskId);
-//     if (!task) {
-//       return res(ctx.status(404));
-//     }
-
-//     return res(ctx.status(200), ctx.json(task));
-//   }
-// );
+      return res(ctx.status(201), ctx.json(newTask));
+    } catch {
+      return res(ctx.status(400));
+    }
+  }
+);
 
 export const handlers: RestHandler[] = [
   handleGetBoard,
@@ -163,4 +161,5 @@ export const handlers: RestHandler[] = [
   handleFindTaskCollection,
   handleGetTask,
   handleFindTask,
+  handleCreateTask,
 ];

@@ -78,6 +78,7 @@ export const api = createApi({
         body: task,
         method: "POST",
       }),
+      invalidatesTags: ["task"],
     }),
   }),
 });
