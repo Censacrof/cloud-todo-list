@@ -1,4 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { setupListeners } from "@reduxjs/toolkit/dist/query";
 import { api } from "./api/api";
 import { boardComponentSlice } from "./slices/boardComponentSlice";
 
@@ -13,4 +14,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(api.middleware),
 });
 
+setupListeners(store.dispatch);
+
 export type AppStore = ReturnType<typeof reducer>;
+export const useAppDispatch = () => store.dispatch;

@@ -1,6 +1,9 @@
-import { FC, useCallback } from "react";
+import { FC, ReactNode, useCallback } from "react";
+import { useSelector } from "react-redux";
 import { api } from "../api/api";
 import { Task, TaskType } from "../datamodel/todoList";
+import { boardComponentSlice } from "../slices/boardComponentSlice";
+import { AppStore, useAppDispatch } from "../store";
 
 export const BoardComponent: FC = function BoardComponent() {
   const boardId = "my-board";
@@ -109,9 +112,15 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
                 </button>
               }
             </div>
-            <div className="w-full flex flex-col gap-4 px-2">
+            <div className="w-full flex flex-col px-2">
               {tasksData?.map((task) => {
-                return <TaskCard key={task.id} task={task} />;
+                return (
+                  <SortingDropContainer key={task.id}>
+                    <div className="py-2">
+                      <TaskCard task={task} />
+                    </div>
+                  </SortingDropContainer>
+                );
               })}
             </div>
           </>
@@ -120,22 +129,52 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
     );
   };
 
+const SortingDropContainer: FC<{
+  onDropUpper?: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDropLower?: (event: React.DragEvent<HTMLDivElement>) => void;
+  children?: ReactNode;
+}> = ({ onDropUpper, onDropLower, children }) => {
+  const isDragging = useSelector(
+    (state: AppStore) => state.boardComponent.isDragging
+  );
+
+  return (
+    <div className="relative">
+      {children}
+      {isDragging && (
+        <div className="absolute inset-0 flex flex-col items-stretch justify-stretch">
+          <div onDrop={onDropUpper} className="grow" />
+          <div onDrop={onDropLower} className="grow" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface TaskCardProps {
   task: TaskType;
 }
 const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
-  const onDragStart = useCallback(
+  const dispatch = useAppDispatch();
+
+  const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       event.dataTransfer.setData("task", JSON.stringify(task));
+      dispatch(boardComponentSlice.actions.setIsDragging(true));
     },
-    [task]
+    [dispatch, task]
   );
+
+  const handleDragEnd = useCallback(() => {
+    dispatch(boardComponentSlice.actions.setIsDragging(false));
+  }, [dispatch]);
 
   return (
     <div
       draggable={true}
       className={"w-full flex flex-col rounded-3xl p-4 bg-slate-50"}
-      onDragStart={onDragStart}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
       <h3>{task.name}</h3>
       <p>{task.description}</p>

@@ -1,7 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
+const SLICE_NAME = "boardComponent";
+
 export const boardComponentSlice = createSlice({
-  name: "boardComponent",
+  name: SLICE_NAME,
   initialState: {
     isDragging: false,
   },
