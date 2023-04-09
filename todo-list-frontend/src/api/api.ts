@@ -55,6 +55,20 @@ export const api = createApi({
       providesTags: ["task"],
     }),
 
+    findTask: builder.query<
+      TaskType[],
+      { boardId: string; filters: Partial<Record<keyof TaskType, string>> }
+    >({
+      query: ({ boardId, filters }) => ({
+        url: getTaskEndpoint(boardId),
+        params: {
+          ...filters,
+        },
+        method: "GET",
+      }),
+      providesTags: ["task"],
+    }),
+
     createTask: builder.mutation<
       TaskType,
       { boardId: string; task: Omit<TaskType, "id"> }

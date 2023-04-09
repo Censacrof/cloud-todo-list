@@ -3,8 +3,14 @@ import {
   BASE_URL,
   getBoardEndpoint,
   getTaskCollectionEndpoint,
+  getTaskEndpoint,
 } from "../api/api";
-import { BoardType, TaskCollectionType } from "../datamodel/todoList";
+import {
+  BoardType,
+  Task,
+  TaskCollectionType,
+  TaskType,
+} from "../datamodel/todoList";
 
 const _boards: BoardType[] = [
   {
@@ -18,6 +24,28 @@ const _collections: TaskCollectionType[] = [
     boardId: "my-board",
     id: "todo",
     name: "TODO",
+  },
+  {
+    boardId: "my-board",
+    id: "done",
+    name: "Done",
+  },
+];
+
+const _tasks: TaskType[] = [
+  {
+    boardId: "my-board",
+    id: "T-0",
+    name: "This task is DONE",
+    taskCollectionId: "done",
+    description: "Finally",
+  },
+  {
+    boardId: "my-board",
+    id: "T-1",
+    name: "A task",
+    taskCollectionId: "todo",
+    description: "Wow a task",
   },
 ];
 
@@ -68,30 +96,41 @@ const handleFindTaskCollection = rest.get(
   }
 );
 
-// const handleGetTask = rest.get(
-//   BASE_URL + getTaskEndpoint(":boardId", ":taskId"),
-//   (req, res, ctx) => {
-//     const { boardId, taskId } = req.params;
+const handleGetTask = rest.get(
+  BASE_URL + getTaskEndpoint(":boardId", ":taskId"),
+  (req, res, ctx) => {
+    const { boardId, taskId } = req.params;
 
-//     const board = JSON.parse(JSON.stringify(_boards.get(boardId as string)));
-//     if (!board) {
-//       return res(ctx.status(404));
-//     }
+    const collection = _tasks.find(
+      ({ boardId: bId, id }) => bId === boardId && id === taskId
+    );
 
-//     const allTasks = (board.collections as TaskCollectionType[])
-//       .map((c) => c.tasks as TaskType[])
-//       .flat();
-//     console.log(board.collections);
-//     console.log(_boards);
+    return res(ctx.status(200), ctx.json(collection));
+  }
+);
 
-//     const task = allTasks.find((t) => t.id === taskId);
-//     if (!task) {
-//       return res(ctx.status(404));
-//     }
+const handleFindTask = rest.get(
+  BASE_URL + getTaskEndpoint(":boardId"),
+  (req, res, ctx) => {
+    const { boardId, taskId } = req.params;
 
-//     return res(ctx.status(200), ctx.json(task));
-//   }
-// );
+    let tasks = _tasks.filter(({ boardId: bId }) => bId === boardId);
+
+    if (taskId) {
+      tasks = tasks.filter(({ id }) => id === taskId);
+    }
+
+    req.url.searchParams.forEach((val, key) => {
+      if (!(key in Task.fields)) {
+        return;
+      }
+
+      tasks = tasks.filter((task) => task[key as keyof TaskType] === val);
+    });
+
+    return res(ctx.status(200), ctx.json(tasks));
+  }
+);
 
 // const handlePostTask = rest.post(
 //   BASE_URL + getTaskEndpoint(":boardId"),
@@ -122,5 +161,6 @@ export const handlers: RestHandler[] = [
   handleGetBoard,
   handleGetTaskCollection,
   handleFindTaskCollection,
-  // handleGetTask,
+  handleGetTask,
+  handleFindTask,
 ];

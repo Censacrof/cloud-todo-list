@@ -46,6 +46,13 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
       taskCollectionId,
     });
 
+    const { data: tasksData } = api.useFindTaskQuery({
+      boardId,
+      filters: {
+        taskCollectionId,
+      },
+    });
+
     const [createTask] = api.useCreateTaskMutation();
 
     return (
@@ -74,13 +81,12 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
               }
             </div>
             <div className="w-full flex flex-col gap-4 px-2">
-              daje
-              {/* {taskCollectionData.tasks.map((task) => {
+              {tasksData?.map((task) => {
                 const taskId = typeof task === "string" ? task : task.id;
                 return (
                   <TaskCard key={taskId} boardId={boardId} taskId={taskId} />
                 );
-              })} */}
+              })}
             </div>
           </>
         )}
