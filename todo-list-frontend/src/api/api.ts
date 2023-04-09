@@ -15,14 +15,21 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "https://test.com/api/v1/",
   }),
-  tagTypes: ["board", "collection", "task"],
+  tagTypes: [
+    "getBoard",
+    "findBoard",
+    "getCollection",
+    "findCollection",
+    "getTask",
+    "findTask",
+  ],
   endpoints: (builder) => ({
     getBoard: builder.query<BoardType, { boardId: string }>({
       query: ({ boardId }) => ({
         url: getBoardEndpoint(boardId),
         method: "GET",
       }),
-      providesTags: ["board"],
+      providesTags: ["getBoard"],
     }),
 
     getTaskCollection: builder.query<
@@ -33,7 +40,7 @@ export const api = createApi({
         url: getTaskCollectionEndpoint(boardId, taskCollectionId),
         method: "GET",
       }),
-      providesTags: ["collection"],
+      providesTags: ["getCollection"],
     }),
 
     findTaskCollection: builder.query<
@@ -44,7 +51,7 @@ export const api = createApi({
         url: getTaskCollectionEndpoint(boardId),
         method: "GET",
       }),
-      providesTags: ["collection"],
+      providesTags: ["findCollection"],
     }),
 
     getTask: builder.query<TaskType, { boardId: string; taskId: string }>({
@@ -52,7 +59,7 @@ export const api = createApi({
         url: getTaskEndpoint(boardId, taskId),
         method: "GET",
       }),
-      providesTags: ["task"],
+      providesTags: ["getTask"],
     }),
 
     findTask: builder.query<
@@ -66,7 +73,7 @@ export const api = createApi({
         },
         method: "GET",
       }),
-      providesTags: ["task"],
+      providesTags: ["findTask"],
     }),
 
     createTask: builder.mutation<
@@ -78,7 +85,7 @@ export const api = createApi({
         body: task,
         method: "POST",
       }),
-      invalidatesTags: ["task"],
+      invalidatesTags: ["findTask"],
     }),
   }),
 });
