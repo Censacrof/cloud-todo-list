@@ -1,6 +1,6 @@
 import { FC, useCallback } from "react";
 import { api } from "../api/api";
-import { Task } from "../datamodel/todoList";
+import { Task, TaskType } from "../datamodel/todoList";
 
 export const BoardComponent: FC = function BoardComponent() {
   const boardId = "my-board";
@@ -111,10 +111,7 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
             </div>
             <div className="w-full flex flex-col gap-4 px-2">
               {tasksData?.map((task) => {
-                const taskId = typeof task === "string" ? task : task.id;
-                return (
-                  <TaskCard key={taskId} boardId={boardId} taskId={taskId} />
-                );
+                return <TaskCard key={task.id} task={task} />;
               })}
             </div>
           </>
@@ -124,20 +121,14 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
   };
 
 interface TaskCardProps {
-  boardId: string;
-  taskId: string;
+  task: TaskType;
 }
-const TaskCard: FC<TaskCardProps> = function TaskCard({ boardId, taskId }) {
-  const { data: taskData } = api.useGetTaskQuery({
-    boardId,
-    taskId,
-  });
-
+const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
   const onDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      event.dataTransfer.setData("task", JSON.stringify(taskData));
+      event.dataTransfer.setData("task", JSON.stringify(task));
     },
-    [taskData]
+    [task]
   );
 
   return (
@@ -146,12 +137,8 @@ const TaskCard: FC<TaskCardProps> = function TaskCard({ boardId, taskId }) {
       className={"w-full flex flex-col rounded-3xl p-4 bg-slate-50"}
       onDragStart={onDragStart}
     >
-      {taskData && (
-        <>
-          <h3>{taskData.name}</h3>
-          <p>{taskData.description}</p>
-        </>
-      )}
+      <h3>{task.name}</h3>
+      <p>{task.description}</p>
     </div>
   );
 };
