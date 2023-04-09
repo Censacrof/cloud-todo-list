@@ -1,9 +1,9 @@
 import { RestHandler, rest } from "msw";
 import {
   BASE_URL,
-  getGetBoardEndpoint,
-  getGetTaskCollectionEndpoint,
-  getGetTaskEndpoint,
+  getBoardEndpoint,
+  getTaskCollectionEndpoint,
+  getTaskEndpoint,
 } from "../api/api";
 import { BoardType, TaskCollectionType, TaskType } from "../datamodel/todoList";
 
@@ -31,7 +31,7 @@ _boards.set("my-board", {
 });
 
 const handleGetBoard = rest.get(
-  BASE_URL + getGetBoardEndpoint(":boardId"),
+  BASE_URL + getBoardEndpoint(":boardId"),
   (req, res, ctx) => {
     const { boardId } = req.params;
 
@@ -49,7 +49,7 @@ const handleGetBoard = rest.get(
 );
 
 const handleGetTaskCollection = rest.get(
-  BASE_URL + getGetTaskCollectionEndpoint(":boardId", ":taskCollectionId"),
+  BASE_URL + getTaskCollectionEndpoint(":boardId", ":taskCollectionId"),
   (req, res, ctx) => {
     const { boardId, taskCollectionId } = req.params;
 
@@ -74,7 +74,7 @@ const handleGetTaskCollection = rest.get(
 );
 
 const handleGetTask = rest.get(
-  BASE_URL + getGetTaskEndpoint(":boardId", ":taskId"),
+  BASE_URL + getTaskEndpoint(":boardId", ":taskId"),
   (req, res, ctx) => {
     const { boardId, taskId } = req.params;
 
