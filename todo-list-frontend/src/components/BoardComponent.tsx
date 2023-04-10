@@ -117,9 +117,9 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> = memo(
                 return (
                   <SortingDropContainer
                     key={task.id}
-                    onDropLower={(event) => {
+                    onDrop={(event, zone) => {
                       event.stopPropagation();
-                      console.log("lower");
+                      console.log(zone);
                     }}
                   >
                     <div className="py-2">
@@ -137,59 +137,47 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> = memo(
 );
 
 interface SortingDropContainerProps {
-  onDropUpper?: (event: React.DragEvent<HTMLDivElement>) => void;
-  onDropLower?: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDrop?: (
+    event: React.DragEvent<HTMLDivElement>,
+    zone: "top" | "bottom"
+  ) => void;
   children?: ReactNode;
 }
 const SortingDropContainer: FC<SortingDropContainerProps> = memo(
-  function SortingDropContainer({ onDropUpper, onDropLower, children }) {
+  function SortingDropContainer({ onDrop, children }) {
+    const isDragging = useSelector(
+      (state: AppStore) => state.boardComponent.isDragging
+    );
+
+    const handleDropBottom = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        onDrop?.(event, "bottom");
+      },
+      [onDrop]
+    );
+
+    const handleDropTop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        onDrop?.(event, "top");
+      },
+      [onDrop]
+    );
+
     return (
       <div className="relative">
         {children}
-        <SortingDropContainerZones
-          onDropLower={onDropLower}
-          onDropUpper={onDropUpper}
-        />
+        <>
+          {isDragging && (
+            <div className="absolute inset-0 flex flex-col items-stretch justify-stretch">
+              <div onDrop={handleDropTop} className="grow" />
+              <div onDrop={handleDropBottom} className="grow" />
+            </div>
+          )}
+        </>
       </div>
     );
   }
 );
-
-const SortingDropContainerZones: FC<{
-  onDropUpper?: (event: React.DragEvent<HTMLDivElement>) => void;
-  onDropLower?: (event: React.DragEvent<HTMLDivElement>) => void;
-}> = memo(function SortingDropContainerZones({ onDropLower, onDropUpper }) {
-  const isDragging = useSelector(
-    (state: AppStore) => state.boardComponent.isDragging
-  );
-
-  const handleDragOver = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-    },
-    []
-  );
-
-  return (
-    <>
-      {isDragging && (
-        <div className="absolute inset-0 flex flex-col items-stretch justify-stretch">
-          <div
-            onDrop={onDropUpper}
-            className="grow"
-            onDragOver={handleDragOver}
-          />
-          <div
-            onDrop={onDropLower}
-            className="grow"
-            onDragOver={handleDragOver}
-          />
-        </div>
-      )}
-    </>
-  );
-});
 
 interface TaskCardProps {
   task: TaskType;
