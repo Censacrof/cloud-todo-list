@@ -1,11 +1,11 @@
-import { FC, ReactNode, useCallback } from "react";
+import { FC, ReactNode, memo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { api } from "../api/api";
 import { Task, TaskType } from "../datamodel/todoList";
 import { boardComponentSlice } from "../slices/boardComponentSlice";
 import { AppStore, useAppDispatch } from "../store";
 
-export const BoardComponent: FC = function BoardComponent() {
+export const BoardComponent: FC = memo(function BoardComponent() {
   const boardId = "my-board";
 
   const {
@@ -37,13 +37,13 @@ export const BoardComponent: FC = function BoardComponent() {
       )}
     </>
   );
-};
+});
 
 interface BoardComponentColumnProps {
   boardId: string;
   taskCollectionId: string;
 }
-const BoardComponentColumn: FC<BoardComponentColumnProps> =
+const BoardComponentColumn: FC<BoardComponentColumnProps> = memo(
   function BoardComponentColumn({ boardId, taskCollectionId }) {
     const { data: taskCollectionData } = api.useGetTaskCollectionQuery({
       boardId,
@@ -115,7 +115,13 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
             <div className="w-full flex flex-col px-2">
               {tasksData?.map((task) => {
                 return (
-                  <SortingDropContainer key={task.id}>
+                  <SortingDropContainer
+                    key={task.id}
+                    onDropLower={(event) => {
+                      event.stopPropagation();
+                      console.log("lower");
+                    }}
+                  >
                     <div className="py-2">
                       <TaskCard task={task} />
                     </div>
@@ -127,40 +133,79 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> =
         )}
       </div>
     );
-  };
+  }
+);
 
-const SortingDropContainer: FC<{
+interface SortingDropContainerProps {
   onDropUpper?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDropLower?: (event: React.DragEvent<HTMLDivElement>) => void;
   children?: ReactNode;
-}> = ({ onDropUpper, onDropLower, children }) => {
+}
+const SortingDropContainer: FC<SortingDropContainerProps> = memo(
+  function SortingDropContainer({ onDropUpper, onDropLower, children }) {
+    return (
+      <div className="relative">
+        {children}
+        <SortingDropContainerZones
+          onDropLower={onDropLower}
+          onDropUpper={onDropUpper}
+        />
+      </div>
+    );
+  }
+);
+
+const SortingDropContainerZones: FC<{
+  onDropUpper?: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDropLower?: (event: React.DragEvent<HTMLDivElement>) => void;
+}> = memo(function SortingDropContainerZones({ onDropLower, onDropUpper }) {
   const isDragging = useSelector(
     (state: AppStore) => state.boardComponent.isDragging
   );
 
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    []
+  );
+
   return (
-    <div className="relative">
-      {children}
+    <>
       {isDragging && (
         <div className="absolute inset-0 flex flex-col items-stretch justify-stretch">
-          <div onDrop={onDropUpper} className="grow" />
-          <div onDrop={onDropLower} className="grow" />
+          <div
+            onDrop={onDropUpper}
+            className="grow"
+            onDragOver={handleDragOver}
+          />
+          <div
+            onDrop={onDropLower}
+            className="grow"
+            onDragOver={handleDragOver}
+          />
         </div>
       )}
-    </div>
+    </>
   );
-};
+});
 
 interface TaskCardProps {
   task: TaskType;
 }
-const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
+const TaskCard: FC<TaskCardProps> = memo(function TaskCard({ task }) {
   const dispatch = useAppDispatch();
 
   const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       event.dataTransfer.setData("task", JSON.stringify(task));
-      dispatch(boardComponentSlice.actions.setIsDragging(true));
+
+      // need to call dispatch inside timeout to prevent
+      // 'dragend' to fire immediatly
+      setTimeout(() => {
+        dispatch(boardComponentSlice.actions.setIsDragging(true));
+      }, 1);
     },
     [dispatch, task]
   );
@@ -180,4 +225,4 @@ const TaskCard: FC<TaskCardProps> = function TaskCard({ task }) {
       <p>{task.description}</p>
     </div>
   );
-};
+});
