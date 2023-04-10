@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import qs from "qs";
 import { BoardType, TaskCollectionType, TaskType } from "../datamodel/todoList";
 
 export const BASE_URL = "https://test.com/api/v1/";
@@ -11,9 +12,15 @@ export const getTaskCollectionEndpoint = (
 export const getTaskEndpoint = (boardId: string, taskId?: string) =>
   `${getBoardEndpoint(boardId)}/task/${taskId || ""}`;
 
+export type FindResourceParamsType<T> = {
+  where?: Partial<T>;
+  sortBy?: keyof T;
+};
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "https://test.com/api/v1/",
+    paramsSerializer: (params) => qs.stringify(params),
   }),
   tagTypes: [
     "getBoard",
@@ -64,13 +71,11 @@ export const api = createApi({
 
     findTask: builder.query<
       TaskType[],
-      { boardId: string; filters: Partial<Record<keyof TaskType, string>> }
+      { boardId: string; params: FindResourceParamsType<TaskType> }
     >({
-      query: ({ boardId, filters }) => ({
+      query: ({ boardId, params }) => ({
         url: getTaskEndpoint(boardId),
-        params: {
-          ...filters,
-        },
+        params,
         method: "GET",
       }),
       providesTags: ["findTask"],

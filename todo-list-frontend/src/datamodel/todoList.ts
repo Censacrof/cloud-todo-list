@@ -6,6 +6,7 @@ export const Task = rt.Record({
   taskCollectionId: rt.String,
   name: rt.String,
   description: rt.String.optional(),
+  index: rt.Number.optional(),
 });
 export type TaskType = rt.Static<typeof Task>;
 

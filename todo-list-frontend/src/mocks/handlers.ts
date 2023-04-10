@@ -1,6 +1,8 @@
 import { RestHandler, rest } from "msw";
+import qs from "qs";
 import {
   BASE_URL,
+  FindResourceParamsType,
   getBoardEndpoint,
   getTaskCollectionEndpoint,
   getTaskEndpoint,
@@ -32,7 +34,7 @@ const _collections: TaskCollectionType[] = [
   },
 ];
 
-const _tasks: TaskType[] = [
+let _tasks: TaskType[] = [
   {
     boardId: "my-board",
     id: "T-0",
@@ -117,7 +119,13 @@ const handleFindTask = rest.get(
 
     let tasks = _tasks.filter(({ boardId: bId }) => bId === boardId);
 
-    req.url.searchParams.forEach((val, key) => {
+    console.log(qs.parse(req.url.search, { ignoreQueryPrefix: true }));
+    const searchParams: FindResourceParamsType<TaskType> = qs.parse(
+      req.url.search,
+      { ignoreQueryPrefix: true }
+    );
+
+    Object.entries(searchParams.where || {}).forEach(([key, val]) => {
       if (!(key in Task.fields)) {
         return;
       }
@@ -162,16 +170,20 @@ const handleUpdateTask = rest.put(
       return res(ctx.status(400));
     }
 
-    const task = _tasks.find((t) => t.id === taskId);
-    if (!task) {
-      return res(ctx.status(404));
-    }
-
-    Object.entries(updatedTask).forEach(([key, val]) => {
-      task[key as keyof TaskType] = val;
+    _tasks = _tasks.filter((t) => t.id !== taskId);
+    const targetIndex = updatedTask.index || _tasks.length;
+    const tasksInCollection = [
+      ..._tasks.filter(
+        (t) => t.taskCollectionId === updatedTask.taskCollectionId
+      ),
+    ];
+    tasksInCollection.sort((a, b) => (a.index || 0) - (b.index || 0));
+    tasksInCollection.forEach((t, i) => {
+      t.index = i < targetIndex ? i : i + 1;
     });
+    _tasks.push({ ...updatedTask, index: targetIndex });
 
-    return res(ctx.status(200), ctx.json(task));
+    return res(ctx.status(200), ctx.json(updatedTask));
   }
 );
 

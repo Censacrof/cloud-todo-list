@@ -52,8 +52,11 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> = memo(
 
     const { data: tasksData } = api.useFindTaskQuery({
       boardId,
-      filters: {
-        taskCollectionId,
+      params: {
+        where: {
+          taskCollectionId,
+        },
+        sortBy: "taskCollectionId",
       },
     });
 
@@ -113,13 +116,25 @@ const BoardComponentColumn: FC<BoardComponentColumnProps> = memo(
               }
             </div>
             <div className="w-full flex flex-col px-2">
-              {tasksData?.map((task) => {
+              {tasksData?.map((task, i) => {
                 return (
                   <SortingDropContainer
                     key={task.id}
                     onDrop={(event, zone) => {
                       event.stopPropagation();
-                      console.log(zone);
+                      const droppedTask = JSON.parse(
+                        event.dataTransfer.getData("task")
+                      );
+
+                      updateTask({
+                        boardId,
+                        taskId: droppedTask.id,
+                        task: {
+                          ...droppedTask,
+                          taskCollectionId,
+                          index: zone === "bottom" ? i + 1 : i,
+                        },
+                      });
                     }}
                   >
                     <div className="py-2">
@@ -169,8 +184,14 @@ const SortingDropContainer: FC<SortingDropContainerProps> = memo(
         <>
           {isDragging && (
             <div className="absolute inset-0 flex flex-col items-stretch justify-stretch">
-              <div onDrop={handleDropTop} className="grow" />
-              <div onDrop={handleDropBottom} className="grow" />
+              <div
+                onDrop={handleDropTop}
+                className="grow hover:bg-red-50 hover:border-t-2 border-orange-500"
+              />
+              <div
+                onDrop={handleDropBottom}
+                className="grow hover:bg-red-50 hover:border-t-2 border-orange-500"
+              />
             </div>
           )}
         </>
