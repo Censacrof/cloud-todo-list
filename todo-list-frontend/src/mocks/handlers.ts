@@ -119,7 +119,6 @@ const handleFindTask = rest.get(
 
     let tasks = _tasks.filter(({ boardId: bId }) => bId === boardId);
 
-    console.log(qs.parse(req.url.search, { ignoreQueryPrefix: true }));
     const searchParams: FindResourceParamsType<TaskType> = qs.parse(
       req.url.search,
       { ignoreQueryPrefix: true }
